@@ -1,0 +1,2 @@
+ALTER TABLE productos
+    ADD COLUMN precio_unitario NUMERIC(12, 2) NOT NULL DEFAULT 0.00;

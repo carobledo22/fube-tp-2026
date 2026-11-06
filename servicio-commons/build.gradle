@@ -1,0 +1,21 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+}
+
+// Deshabilitar la generacion de JAR ejecutable
+bootJar {
+    enabled = false
+}
+
+// Habilitar la generacion del JAR estandar para ser consumido por otros modulos
+jar {
+    enabled = true
+}
