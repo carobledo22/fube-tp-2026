@@ -17,6 +17,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ClienteService {
     private final ClienteRepository clienteRepository;
+    private final PiiMaskingService piiMaskingService;
+
     @Transactional
     public ClienteResponse crearCliente(ClienteRequest request){
         Cliente cliente = Cliente.builder()
@@ -32,7 +34,11 @@ public class ClienteService {
     public ClienteResponse obtenerClientePorId(UUID id){
         Cliente cliente = clienteRepository.findById(id).
                 orElseThrow(() -> new ClienteNotFoundException("Cliente con id " + id + " no encontrado"));
-        return new ClienteResponse(id, cliente.getNombre(), cliente.getEmail(), cliente.getFechaAlta());
 
+        boolean mask = piiMaskingService.isMaskPiiEnabled(id);
+        String nombre = mask ? piiMaskingService.maskName(cliente.getNombre()) : cliente.getNombre();
+        String email = mask ? piiMaskingService.maskEmail(cliente.getEmail()) : cliente.getEmail();
+
+        return new ClienteResponse(id, nombre, email, cliente.getFechaAlta());
     }
 }
