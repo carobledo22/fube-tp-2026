@@ -48,7 +48,7 @@ public class CrearPedidoIntegrationTest {
     }
 
     @Test
-    void crearPedido_cuandoClienteYProductoExistenConStock_devuelvePedidoConfirmado() {
+    void crearPedido_cuandoClienteYProductoExistenConStock_devuelvePedidoCreado() {
 
         //Arrange
         UUID clienteId = UUID.randomUUID();
@@ -88,7 +88,7 @@ public class CrearPedidoIntegrationTest {
         assertNotNull(response.getBody());
         assertNotNull(response.getBody().getPedidoId());
         assertEquals(clienteId, response.getBody().getClienteId());
-        assertEquals(EstadoPedido.CONFIRMADO, response.getBody().getEstadoPedido());
+        assertEquals(EstadoPedido.CREADO, response.getBody().getEstadoPedido());
         assertEquals(0, new BigDecimal("3000000.00").compareTo(response.getBody().getMontoTotal()));
 
         mockServerClientes.verify(
