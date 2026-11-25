@@ -1,5 +1,6 @@
 package com.tiendaonline.clientes.service;
 
+import com.tiendaonline.clientes.client.PedidoClient;
 import com.tiendaonline.clientes.dto.ClienteDTOs;
 import com.tiendaonline.clientes.dto.ClienteDTOs.ClienteResponse;
 import com.tiendaonline.clientes.dto.ClienteDTOs.ClienteRequest;
@@ -31,6 +32,9 @@ public class ClienteServiceTest {
 
     @Mock
     private PiiMaskingService piiMaskingService;
+
+    @Mock
+    private PedidoClient pedidoClient;
 
     @InjectMocks
 

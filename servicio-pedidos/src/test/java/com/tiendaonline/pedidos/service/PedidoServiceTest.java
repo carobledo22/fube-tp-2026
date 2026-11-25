@@ -83,8 +83,7 @@ public class PedidoServiceTest {
         UUID id = UUID.randomUUID();
         UUID clienteId = UUID.randomUUID();
 
-        Pedido pedido = new Pedido(id, clienteId, EstadoPedido.CREADO, new BigDecimal("100000"),
-                LocalDateTime.now(), LocalDateTime.now(), new ArrayList<>());
+        Pedido pedido = new Pedido(id, clienteId, EstadoPedido.CREADO, new BigDecimal("100000"), LocalDateTime.now(), LocalDateTime.now(), new ArrayList<>());
 
         when(pedidoRepository.findById(id)).thenReturn(Optional.of(pedido));
         when(pedidoRepository.save(pedido)).thenReturn(pedido);

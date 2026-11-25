@@ -1,8 +1,10 @@
 package com.tiendaonline.clientes.service;
 
+import com.tiendaonline.clientes.client.PedidoClient;
 import com.tiendaonline.clientes.dto.ClienteDTOs;
 import com.tiendaonline.clientes.dto.ClienteDTOs.ClienteRequest;
 import com.tiendaonline.clientes.dto.ClienteDTOs.ClienteResponse;
+import com.tiendaonline.clientes.dto.ExternalDTOs.PedidoResponse;
 import com.tiendaonline.clientes.entity.Cliente;
 import com.tiendaonline.clientes.exception.ClienteNotFoundException;
 import com.tiendaonline.clientes.repository.ClienteRepository;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 @Slf4j
 @Service
@@ -19,6 +22,7 @@ import java.util.UUID;
 public class ClienteService {
     private final ClienteRepository clienteRepository;
     private final PiiMaskingService piiMaskingService;
+    private final PedidoClient pedidoClient;
 
     @Transactional
     public ClienteResponse crearCliente(ClienteRequest request){
@@ -42,5 +46,13 @@ public class ClienteService {
         String email = mask ? piiMaskingService.maskEmail(cliente.getEmail()) : cliente.getEmail();
 
         return new ClienteResponse(id, nombre, email, cliente.getFechaAlta());
+    }
+
+    @Transactional(readOnly = true)
+    public List<PedidoResponse> obtenerPedidosDelCliente(UUID id){
+        clienteRepository.findById(id)
+                .orElseThrow(() -> new ClienteNotFoundException("Cliente con id " + id + " no encontrado"));
+        log.info("Consultando pedidos del cliente id={} via servicio-pedidos", id);
+        return pedidoClient.obtenerPedidosPorCliente(id);
     }
 }

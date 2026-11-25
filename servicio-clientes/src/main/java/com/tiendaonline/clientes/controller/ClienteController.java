@@ -3,6 +3,7 @@ package com.tiendaonline.clientes.controller;
 import com.tiendaonline.clientes.dto.ClienteDTOs;
 import com.tiendaonline.clientes.dto.ClienteDTOs.ClienteResponse;
 import com.tiendaonline.clientes.dto.ClienteDTOs.ClienteRequest;
+import com.tiendaonline.clientes.dto.ExternalDTOs.PedidoResponse;
 import com.tiendaonline.clientes.repository.ClienteRepository;
 import com.tiendaonline.clientes.service.ClienteService;
 import jakarta.validation.Valid;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -27,5 +29,10 @@ public class ClienteController {
     public ResponseEntity<ClienteResponse> obtenerPorId(@PathVariable UUID id){
         ClienteResponse response = clienteService.obtenerClientePorId(id);
         return ResponseEntity.ok(response);
+    }
+    @GetMapping("/{id}/pedidos")
+    public ResponseEntity<List<PedidoResponse>> obtenerPedidosDelCliente(@PathVariable UUID id){
+        List<PedidoResponse> pedidos = clienteService.obtenerPedidosDelCliente(id);
+        return ResponseEntity.ok(pedidos);
     }
 }

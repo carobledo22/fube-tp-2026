@@ -47,11 +47,13 @@ public class CrearPedidoIntegrationTest {
         mockServerInventario.stop();
     }
 
+    //Prueba de servicio de Integracion - Happy Path
     @Test
     void crearPedido_cuandoClienteYProductoExistenConStock_devuelvePedidoCreado() {
 
         //Arrange
         UUID clienteId = UUID.randomUUID();
+
         UUID productoId = UUID.randomUUID();
 
         mockServerClientes.when(
@@ -59,7 +61,7 @@ public class CrearPedidoIntegrationTest {
             .respond(
                 response().withStatusCode(200)
                     .withHeader("Content-Type", "application/json")
-                    .withBody("{\"id\":\"" + clienteId + "\",\"nombre\":\"Juan\",\"email\":\"juan@mail.com\"}"));
+                    .withBody("{\"id\":\"" + clienteId + "\",\"nombre\":\"Juan\",\"email\":\"juan@gmail.com\"}"));
 
         mockServerInventario.when(
                 request().withMethod("GET").withPath("/api/v1/productos/" + productoId))
@@ -94,6 +96,86 @@ public class CrearPedidoIntegrationTest {
         mockServerClientes.verify(
                 request().withMethod("GET").withPath("/api/v1/clientes/" + clienteId),
                 VerificationTimes.exactly(1));
+
+        mockServerInventario.verify(
+                request().withMethod("POST").withPath("/api/v1/reservas/batch"),
+                VerificationTimes.exactly(1));
+    }
+
+    //Prueba de servicio de Integracion - Cliente no existe
+    @Test
+    void crearPedido_cuandoClienteNoExiste_devuelve404() {
+
+        //Arrange
+        UUID clienteId = UUID.randomUUID();
+        UUID productoId = UUID.randomUUID();
+
+        mockServerClientes.when(
+                request().withMethod("GET").withPath("/api/v1/clientes/" + clienteId))
+            .respond(
+                response().withStatusCode(404)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody("{\"message\":\"Cliente con id " + clienteId + " no encontrado\"}"));
+
+        CrearPedidoRequest request = new CrearPedidoRequest(
+                clienteId,
+                List.of(new ItemPedidoRequest(productoId, 2)));
+
+        //Act
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                "/api/v1/pedidos", request, String.class);
+
+        //Assert
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+
+        mockServerClientes.verify(
+                request().withMethod("GET").withPath("/api/v1/clientes/" + clienteId),
+                VerificationTimes.exactly(1));
+
+        mockServerInventario.verify(
+                request().withMethod("POST").withPath("/api/v1/reservas/batch"),
+                VerificationTimes.exactly(0));
+    }
+
+    //Prueba de servicio de Integracion - Stock insuficiente
+    @Test
+    void crearPedido_cuandoStockInsuficiente_devuelve400() {
+
+        //Arrange
+        UUID clienteId = UUID.randomUUID();
+        UUID productoId = UUID.randomUUID();
+
+        mockServerClientes.when(
+                request().withMethod("GET").withPath("/api/v1/clientes/" + clienteId))
+            .respond(
+                response().withStatusCode(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody("{\"id\":\"" + clienteId + "\",\"nombre\":\"Juan\",\"email\":\"juan@gmail.com\"}"));
+
+        mockServerInventario.when(
+                request().withMethod("GET").withPath("/api/v1/productos/" + productoId))
+            .respond(
+                response().withStatusCode(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody("{\"id\":\"" + productoId + "\",\"nombre\":\"Notebook\",\"cantidadDisponible\":10,\"precioUnitario\":1500000}"));
+
+        mockServerInventario.when(
+                request().withMethod("POST").withPath("/api/v1/reservas/batch"))
+            .respond(
+                response().withStatusCode(400)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody("{\"message\":\"Stock insuficiente para el producto: Notebook\"}"));
+
+        CrearPedidoRequest request = new CrearPedidoRequest(
+                clienteId,
+                List.of(new ItemPedidoRequest(productoId, 2)));
+
+        //Act
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                "/api/v1/pedidos", request, String.class);
+
+        //Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
 
         mockServerInventario.verify(
                 request().withMethod("POST").withPath("/api/v1/reservas/batch"),

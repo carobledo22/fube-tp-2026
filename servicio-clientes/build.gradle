@@ -1,5 +1,15 @@
 description = 'Servicio de gestion de clientes - TiendaOnline'
 
+ext {
+    springCloudVersion = '2023.0.3'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
 dependencies {
     implementation project(':servicio-commons')
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -9,6 +19,7 @@ dependencies {
     implementation 'org.flywaydb:flyway-database-postgresql'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
     implementation 'com.statsig:serversdk:2.0.8'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
     runtimeOnly 'org.postgresql:postgresql'
 
     compileOnly 'org.projectlombok:lombok'
