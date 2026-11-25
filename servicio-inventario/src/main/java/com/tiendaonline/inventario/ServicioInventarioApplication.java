@@ -4,7 +4,7 @@ import java.util.TimeZone;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com.tiendaonline")
 public class ServicioInventarioApplication {
 
     public static void main(String[] args) {

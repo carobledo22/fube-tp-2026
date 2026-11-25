@@ -15,6 +15,14 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+  main:
+    web-application-type: servlet
   batch:
+    jdbc:
+      initialize-schema: always
     job:
       enabled: false
+management:
+  tracing:
+    sampling:
+      probability: 1.0

@@ -3,6 +3,7 @@ build/
 .gradle/
 !gradle/wrapper/gradle-wrapper.jar
 *.class
+logs/
 *.log
 .idea/
 *.iml

@@ -18,3 +18,8 @@ spring:
 
 statsig:
   server-secret-key: ${STATSIG_SERVER_SECRET:}
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
