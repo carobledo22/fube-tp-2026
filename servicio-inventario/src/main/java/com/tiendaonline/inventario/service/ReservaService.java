@@ -11,13 +11,14 @@ import com.tiendaonline.inventario.entity.Reserva;
 import com.tiendaonline.inventario.repository.ProductoRepository;
 import com.tiendaonline.inventario.repository.ReservaRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReservaService {
@@ -30,6 +31,7 @@ public class ReservaService {
         List<ReservaItemResponse> respuestas = new ArrayList<>();
 
         for (ItemReservaRequest item : request.getItems()) {
+            log.info("Reservando stock para productoId={}, cantidadSolicitada={}", item.getProductoId(), item.getCantidad());
             Producto producto = productoRepository.findById(item.getProductoId())
                     .orElseThrow(() -> new ProductoNotFoundException("No existe el producto con ID: " + item.getProductoId()));
 
@@ -55,6 +57,9 @@ public class ReservaService {
                     .cantidad(guardada.getCantidad())
                     .estado(guardada.getEstado().name())
                     .build());
+
+            log.info("Stock reservado correctamente para productoId={}, stockRestante={}",
+                    producto.getId(), producto.getCantidadDisponible());
         }
 
         return respuestas;
@@ -62,6 +67,7 @@ public class ReservaService {
 
     @Transactional
     public void liberarReservasPorPedido(UUID pedidoId) {
+
         List<Reserva> reservas = reservaRepository.findByPedidoId(pedidoId);
 
         if (reservas.isEmpty()) {
@@ -73,6 +79,8 @@ public class ReservaService {
                 // Devolver stock al producto
                 Producto producto = productoRepository.findById(reserva.getProductoId())
                         .orElseThrow(() -> new ProductoNotFoundException("Producto no encontrado con ID: " + reserva.getProductoId()));
+
+                log.info("Liberando stock para productoId={}, cantidadDevuelta={}", producto.getId(), reserva.getCantidad());
 
                 producto.setCantidadDisponible(producto.getCantidadDisponible() + reserva.getCantidad());
                 productoRepository.save(producto);

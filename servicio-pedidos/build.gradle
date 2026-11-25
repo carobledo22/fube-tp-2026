@@ -22,11 +22,14 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
     runtimeOnly 'org.postgresql:postgresql'
 
+    implementation 'io.github.openfeign:feign-micrometer'
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.mock-server:mockserver-netty:5.15.0'
+    testRuntimeOnly 'com.h2database:h2'
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
 }

@@ -7,16 +7,19 @@ import com.tiendaonline.clientes.entity.Cliente;
 import com.tiendaonline.clientes.exception.ClienteNotFoundException;
 import com.tiendaonline.clientes.repository.ClienteRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ClienteService {
     private final ClienteRepository clienteRepository;
+    private final PiiMaskingService piiMaskingService;
+
     @Transactional
     public ClienteResponse crearCliente(ClienteRequest request){
         Cliente cliente = Cliente.builder()
@@ -30,9 +33,14 @@ public class ClienteService {
 
     @Transactional(readOnly = true)
     public ClienteResponse obtenerClientePorId(UUID id){
+        log.info("Consultando datos del cliente id={}", id);
         Cliente cliente = clienteRepository.findById(id).
                 orElseThrow(() -> new ClienteNotFoundException("Cliente con id " + id + " no encontrado"));
-        return new ClienteResponse(id, cliente.getNombre(), cliente.getEmail(), cliente.getFechaAlta());
 
+        boolean mask = piiMaskingService.isMaskPiiEnabled(id);
+        String nombre = mask ? piiMaskingService.maskName(cliente.getNombre()) : cliente.getNombre();
+        String email = mask ? piiMaskingService.maskEmail(cliente.getEmail()) : cliente.getEmail();
+
+        return new ClienteResponse(id, nombre, email, cliente.getFechaAlta());
     }
 }

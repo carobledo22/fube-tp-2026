@@ -1,5 +1,6 @@
 package com.tiendaonline.pedidos.service;
 
+import com.tiendaonline.commons.exception.BusinessException;
 import com.tiendaonline.pedidos.client.ClienteClient;
 import com.tiendaonline.pedidos.client.InventarioClient;
 import com.tiendaonline.pedidos.dto.ExternalDTOs.ClienteResponse;
@@ -16,6 +17,7 @@ import com.tiendaonline.pedidos.entity.Pedido;
 import com.tiendaonline.pedidos.exception.PedidoNotFoundException;
 import com.tiendaonline.pedidos.repository.PedidoRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PedidoService {
@@ -37,6 +39,9 @@ public class PedidoService {
     @Transactional
     public PedidoResponse crearPedido(CrearPedidoRequest request) {
         ClienteResponse clienteResponse = clienteClient.obtenerClientePorId(request.getClienteId());
+
+        log.info("Iniciando creación de pedido para clienteId={} con {} items",
+                request.getClienteId(), request.getItems().size());
 
         Pedido pedido = new Pedido();
         pedido.setClienteId(clienteResponse.getId());
@@ -78,7 +83,6 @@ public class PedidoService {
 
         inventarioClient.reservarStockBatch(reservaRequest);
 
-        pedidoGuardado.setEstado(EstadoPedido.CONFIRMADO);
         pedidoGuardado.setFechaActualizacion(LocalDateTime.now());
         pedidoRepository.save(pedidoGuardado);
 
@@ -132,12 +136,29 @@ public class PedidoService {
     }
 
     @Transactional
-    public PedidoResponse cancelarPedido(UUID id) {
+    public PedidoResponse confirmarPedido(UUID id) {
         Pedido pedido = pedidoRepository.findById(id)
-                .orElseThrow(() ->  new PedidoNotFoundException("No existe el producto con ID: " + id));
+                .orElseThrow(() ->  new PedidoNotFoundException("No existe el pedido con ID: " + id));
+        if (pedido.getEstado() != EstadoPedido.CREADO)
+            throw new BusinessException("Solo se pueden confirmar pedidos en estado CREADO. Estado actual: " + pedido.getEstado());
+
+        pedido.setEstado(EstadoPedido.CONFIRMADO);
+        pedido.setFechaActualizacion(LocalDateTime.now());
+        Pedido guardado = pedidoRepository.save(pedido);
+
+        return mapToPedidoResponse(guardado);
+
+    }
+
+    @Transactional
+    public PedidoResponse cancelarPedido(UUID id) {
+
+        log.info("Iniciando cancelación del pedido={}", id);
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() ->  new PedidoNotFoundException("No existe el pedido con ID: " + id));
 
         if(pedido.getEstado() == EstadoPedido.CANCELADO)
-            throw new IllegalStateException("El pedido ya se encuentra CANCELADO");
+            throw new BusinessException("El pedido ya se encuentra CANCELADO");
 
         inventarioClient.liberarReservas(pedido.getId());
 
@@ -145,6 +166,7 @@ public class PedidoService {
         pedido.setFechaActualizacion(LocalDateTime.now());
         Pedido guardado = pedidoRepository.save(pedido);
 
+        log.info("Pedido cancelado exitosamente pedidoId={}", id);
         return mapToPedidoResponse(guardado);
 
     }

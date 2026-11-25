@@ -3,6 +3,7 @@ build/
 .gradle/
 !gradle/wrapper/gradle-wrapper.jar
 *.class
+logs/
 *.log
 .idea/
 *.iml
@@ -10,5 +11,3 @@ build/
 .vscode/
 .DS_Store
 HELP.md
-
-.claude/
